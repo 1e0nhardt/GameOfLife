@@ -10,6 +10,8 @@ var _rd: RenderingDevice
 var _pipeline: RID
 var _input_texture: RID
 var _output_texture: RID
+var _survive_nums_buffer: RID
+var _born_nums_buffer: RID
 var _uniform_set: RID
 var _default_texture_format: RDTextureFormat
 var _default_texture_usage_bits = (
@@ -256,13 +258,21 @@ func create_texture_uniform(texture_rid: RID, binding: int) -> RDUniform:
     return texture_uniform
 
 
+func create_buffer_uniform(buffer_rid: RID, binding: int) -> RDUniform:
+    var buffer_uniform := RDUniform.new()
+    buffer_uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+    buffer_uniform.binding = binding
+    buffer_uniform.add_id(buffer_rid)
+    return buffer_uniform
+    
+
 func setup_compute_shader() -> void:
     _rd = RenderingServer.create_local_rendering_device()
     if _rd == null:
         OS.alert("""Couldn't create local RenderingDevice on GPU: %s\nNote: RenderingDevice is only available in the Forward+ and Mobile rendering methods, not Compatibility.""" % RenderingServer.get_video_adapter_name())
         return
 
-    var shader_rid := load_shader("res://shaders/game_of_life.glsl")
+    var shader_rid := load_shader("res://shaders/game_of_life_variant.glsl")
     _pipeline = _rd.compute_pipeline_create(shader_rid)
 
     _default_texture_format = RDTextureFormat.new()
@@ -276,7 +286,16 @@ func setup_compute_shader() -> void:
 
     var input_texture_uniform = create_texture_uniform(_input_texture, 0)
     var output_texture_uniform = create_texture_uniform(_output_texture, 1)
-    _uniform_set = _rd.uniform_set_create([input_texture_uniform, output_texture_uniform], shader_rid, 0)
+    
+    var survive_nums_bytes := PackedInt32Array([2, 2, 3, 0, 0, 0, 0, 0, 0]).to_byte_array()
+    _survive_nums_buffer = _rd.storage_buffer_create(survive_nums_bytes.size(), survive_nums_bytes)
+    var survive_nums_uniform = create_buffer_uniform(_survive_nums_buffer, 2)
+    
+    var born_nums_bytes := PackedInt32Array([1, 3, 0, 0, 0, 0, 0, 0, 0]).to_byte_array()
+    _born_nums_buffer = _rd.storage_buffer_create(born_nums_bytes.size(), born_nums_bytes)
+    var born_nums_uniform = create_buffer_uniform(_born_nums_buffer, 3)
+    
+    _uniform_set = _rd.uniform_set_create([input_texture_uniform, output_texture_uniform, survive_nums_uniform, born_nums_uniform], shader_rid, 0)
 
 
 func update() -> void:
@@ -321,6 +340,21 @@ func _on_object_selected(obj_record: Dictionary) -> void:
 
 
 func _on_rule_changed(new_rule: String) -> void:
-    change_rule(new_rule)
+    # change_rule(new_rule)
+    var born_condition = new_rule.split("/")[0].substr(1)
+    var survive_condition = new_rule.split("/")[1].substr(1)
+ 
+    update_buffer_data(survive_condition, _survive_nums_buffer)
+    update_buffer_data(born_condition, _born_nums_buffer)
+    
     rule_label.text = "Rule: %s" % new_rule
     rule_edit.hide()
+
+
+func update_buffer_data(condition: String, buffer_rid: RID) -> void:
+    var nums_array = PackedInt32Array([condition.length()])
+    for num in condition:
+        nums_array.append(num.to_int())
+    var bytes = nums_array.to_byte_array()
+    _rd.buffer_update(buffer_rid, 0, bytes.size(), bytes)
+    
