@@ -54,7 +54,7 @@ var stopped := true:
 @onready var rule_label: Label = %RuleLabel
 
 
-func _ready() -> void:
+func _ready() -> void:    
     # CAHelper.insert_rows_from_folder("res://game_of_life_patterns")
     EventBus.object_selected.connect(_on_object_selected)
     rule_edit.text_submitted.connect(_on_rule_changed)
@@ -133,6 +133,9 @@ func get_pixel_coords_at_mouse() -> Vector2i:
 
 func draw_point_at_mouse_on_renderer(state: bool) -> void:
     var pixel_coords := get_pixel_coords_at_mouse()
+    if pixel_coords.x < 0 or pixel_coords.y < 0 or pixel_coords.x > grid_size.x or pixel_coords.y > grid_size.y:
+        return
+
     var color = Color.WHITE if state else Color.BLACK
     _output_image.set_pixelv(pixel_coords, color)
     _render_texture.update(_output_image)
