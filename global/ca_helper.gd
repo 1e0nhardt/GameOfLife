@@ -42,7 +42,8 @@ static func rle_decode(rle_code: String, x: int, y: int) -> String:
         if ch.is_valid_int():
             token += ch
         elif ch == "!":
-            cells_code += ".".repeat(x - curr_count) + "\n"
+            if curr_count != 0: # 兼容纯空区域，如 11$!
+                cells_code += ".".repeat(x - curr_count) + "\n"
             curr_count = x
             break
         else:
@@ -98,17 +99,17 @@ static func rle_encode(cells_code: String, x: int, y: int) -> String:
         if current_char == "O":
             rle_code += _create_token(current_char, curr_count)
 
-
         if rle_code.length() > 0 and rle_code[-1] == "$":
             if rle_code.length() > 1:
                 var k = 2
                 var count_str := ""
                 while k <= rle_code.length() and rle_code[-k].is_valid_int():
-                    count_str += rle_code[-k]
+                    count_str = rle_code[-k] + count_str
                     k += 1
                 rle_code = rle_code.left(-k+1) + str(count_str.to_int() + 1)
             elif rle_code.length() == 1: # 处理起始空两行或以上的情况
                 rle_code = "2"
+                
         rle_code += "$"
         curr_count = 0
         if i == y - 1:
