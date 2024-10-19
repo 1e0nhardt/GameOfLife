@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://dfyb27v3t62m2"]
+
+[ext_resource type="Script" path="res://scenes/ui/icon_button.gd" id="2_igrmh"]
+[ext_resource type="Shader" path="res://shaders/ui/close_button.gdshader" id="2_wgjk2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_adp5g"]
+shader = ExtResource("2_wgjk2")
+shader_parameter/tint = Color(1, 1, 1, 1)
+
+[node name="IconButton" type="Button"]
+custom_minimum_size = Vector2(36, 36)
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("2_igrmh")
+tint_hover = Color(0.633757, 0.633757, 0.633757, 1)
+tint_pressed = Color(0.864675, 0.864675, 0.864675, 1)
+icon_material = SubResource("ShaderMaterial_adp5g")
+
+[connection signal="button_down" from="." to="." method="_on_button_down"]
+[connection signal="button_up" from="." to="." method="_on_button_up"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

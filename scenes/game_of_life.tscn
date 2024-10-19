@@ -1,9 +1,8 @@
-[gd_scene load_steps=18 format=3 uid="uid://ckf0okci8mfm1"]
+[gd_scene load_steps=16 format=3 uid="uid://ckf0okci8mfm1"]
 
 [ext_resource type="Script" path="res://scenes/game_of_life.gd" id="1_oc2a8"]
 [ext_resource type="Texture2D" uid="uid://mt7pueeb0ox4" path="res://icon.svg" id="1_t7dgf"]
 [ext_resource type="Shader" path="res://shaders/dot_matrix.gdshader" id="2_mf3jq"]
-[ext_resource type="Script" path="res://scenes/search_panel.gd" id="2_re7kb"]
 [ext_resource type="Script" path="res://scenes/state_machine/gol_state_machine.gd" id="2_wx2qu"]
 [ext_resource type="Script" path="res://scenes/state_machine/draw_state.gd" id="3_a024e"]
 [ext_resource type="Texture2D" uid="uid://csuar07pb12et" path="res://assets/tex_lit.png" id="3_p6yrp"]
@@ -11,12 +10,13 @@
 [ext_resource type="Texture2D" uid="uid://dg7xfxdymlqdl" path="res://assets/tex_unlit.png" id="4_i0rv3"]
 [ext_resource type="Script" path="res://scenes/state_machine/select_state.gd" id="5_ia4lj"]
 [ext_resource type="Script" path="res://scenes/camera.gd" id="6_2lvmn"]
+[ext_resource type="Script" path="res://global/popup_manager.gd" id="12_k2hul"]
 
-[sub_resource type="Gradient" id="Gradient_sh5a7"]
+[sub_resource type="Gradient" id="Gradient_r8ejr"]
 colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_m23fr"]
-gradient = SubResource("Gradient_sh5a7")
+gradient = SubResource("Gradient_r8ejr")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_404el"]
 shader = ExtResource("2_mf3jq")
@@ -24,29 +24,6 @@ shader_parameter/grid_size = Vector2(128, 128)
 shader_parameter/lit_texture = ExtResource("3_p6yrp")
 shader_parameter/unlit_texture = ExtResource("4_i0rv3")
 shader_parameter/binary_texture = SubResource("GradientTexture2D_m23fr")
-shader_parameter/mask_texture = SubResource("GradientTexture2D_m23fr")
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4fqb3"]
-bg_color = Color(0.231373, 0.376471, 0.462745, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.14, 0.228667, 0.28, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-expand_margin_left = 2.0
-expand_margin_top = 2.0
-expand_margin_right = 2.0
-expand_margin_bottom = 2.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_dlav4"]
-shader = ExtResource("2_mf3jq")
-shader_parameter/grid_size = Vector2(16, 9)
-shader_parameter/lit_texture = ExtResource("3_p6yrp")
-shader_parameter/unlit_texture = ExtResource("4_i0rv3")
 shader_parameter/mask_texture = SubResource("GradientTexture2D_m23fr")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dcpor"]
@@ -89,7 +66,7 @@ offset_right = 986.0
 offset_bottom = 481.0
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
-text = "B3/S23"
+placeholder_text = "rule: BXX/SXX or size: number"
 
 [node name="InfoVBox" type="VBoxContainer" parent="UILayer/UI"]
 layout_mode = 0
@@ -118,118 +95,7 @@ text = "Generation: 0"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Rule: B3S23"
-
-[node name="SearchPanel" type="CenterContainer" parent="UILayer/UI"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("2_re7kb")
-
-[node name="PanelContainer" type="PanelContainer" parent="UILayer/UI/SearchPanel"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_4fqb3")
-
-[node name="SearchHBox" type="HBoxContainer" parent="UILayer/UI/SearchPanel/PanelContainer"]
-layout_mode = 2
-
-[node name="PanelContainer" type="PanelContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox"]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/PanelContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 2
-theme_override_constants/margin_top = 2
-theme_override_constants/margin_right = 2
-theme_override_constants/margin_bottom = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/PanelContainer/MarginContainer"]
-custom_minimum_size = Vector2(256, 0)
-layout_mode = 2
-
-[node name="SearchInfoHBox" type="HBoxContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/PanelContainer/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 2
-
-[node name="SearchEdit" type="LineEdit" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/PanelContainer/MarginContainer/VBoxContainer/SearchInfoHBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="SearchButton" type="Button" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/PanelContainer/MarginContainer/VBoxContainer/SearchInfoHBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Search
-"
-
-[node name="SearchResultContainer" type="ScrollContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/PanelContainer/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="SearchResultVBox" type="VBoxContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/PanelContainer/MarginContainer/VBoxContainer/SearchResultContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="SelectedObjectInfo" type="VBoxContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox"]
-layout_mode = 2
-
-[node name="Preview" type="TextureRect" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/SelectedObjectInfo"]
-unique_name_in_owner = true
-material = SubResource("ShaderMaterial_dlav4")
-custom_minimum_size = Vector2(768, 432)
-layout_mode = 2
-texture = ExtResource("1_t7dgf")
-expand_mode = 1
-
-[node name="PanelContainer" type="PanelContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/SelectedObjectInfo"]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/SelectedObjectInfo/PanelContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 4
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 4
-theme_override_constants/margin_bottom = 4
-
-[node name="Description" type="Label" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/SelectedObjectInfo/PanelContainer/MarginContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 150)
-layout_mode = 2
-size_flags_vertical = 1
-text = "This is object 1.
-fdhaefl
-ehfalksdjfa
-ehfldsajfkldsa"
-autowrap_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/SelectedObjectInfo/PanelContainer/MarginContainer/Description"]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -31.0
-grow_horizontal = 2
-grow_vertical = 0
-alignment = 2
-
-[node name="CancelButton" type="Button" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/SelectedObjectInfo/PanelContainer/MarginContainer/Description/HBoxContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 2
-text = "Cancel"
-
-[node name="OkButton" type="Button" parent="UILayer/UI/SearchPanel/PanelContainer/SearchHBox/SelectedObjectInfo/PanelContainer/MarginContainer/Description/HBoxContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 2
-text = "     OK     "
+text = "Rule: B3/S23"
 
 [node name="RMBOptions" type="PanelContainer" parent="UILayer/UI"]
 unique_name_in_owner = true
@@ -250,7 +116,6 @@ initial_state = NodePath("DrawState")
 
 [node name="DrawState" type="Node" parent="GolStateMachine"]
 script = ExtResource("3_a024e")
-state = null
 
 [node name="RunState" type="Node" parent="GolStateMachine"]
 script = ExtResource("4_etdbi")
@@ -259,3 +124,14 @@ state = 2
 [node name="SelectState" type="Node" parent="GolStateMachine"]
 script = ExtResource("5_ia4lj")
 state = 1
+
+[node name="PopupManager" type="CanvasLayer" parent="."]
+script = ExtResource("12_k2hul")
+
+[node name="ClickCatcher" type="Control" parent="PopupManager"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

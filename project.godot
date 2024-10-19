@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="Game Of Life"
+run/main_scene="res://scenes/game_of_life.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 DB="*res://global/sqlite_db.gd"
-EventBus="*res://global/event_bus.gd"
+Controller="*res://global/controller.gd"
 Logger="*res://global/logger.gd"
 
 [display]
@@ -29,6 +30,10 @@ window/stretch/mode="canvas_items"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot-sqlite/plugin.cfg")
+
+[gui]
+
+theme/custom="res://assets/project_theme.tres"
 
 [input]
 

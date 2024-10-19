@@ -1,0 +1,83 @@
+[gd_scene load_steps=3 format=3 uid="uid://qdnvi5h22570"]
+
+[ext_resource type="Script" path="res://scenes/ui/settings_popup.gd" id="1_c5hq3"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ot5bi"]
+bg_color = Color(0.14, 0.228667, 0.28, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.231373, 0.376471, 0.462745, 1)
+
+[node name="SettingsPopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1920.0
+offset_bottom = -1080.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_c5hq3")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ot5bi")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="Layout" type="VBoxContainer" parent="PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="RuleHBox" type="HBoxContainer" parent="PanelContainer/MarginContainer/Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/Layout/RuleHBox"]
+layout_mode = 2
+text = "Rule       "
+
+[node name="RuleLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/Layout/RuleHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "B3/S23"
+
+[node name="GridSizeHBox" type="HBoxContainer" parent="PanelContainer/MarginContainer/Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/Layout/GridSizeHBox"]
+layout_mode = 2
+text = "GridSize"
+
+[node name="SizeLineEdit" type="LineEdit" parent="PanelContainer/MarginContainer/Layout/GridSizeHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "512"
+
+[node name="Buttons" type="HBoxContainer" parent="PanelContainer/MarginContainer/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="CancelButton" type="Button" parent="PanelContainer/MarginContainer/Layout/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"LabelButton"
+text = "Cancel"
+
+[node name="ApplyButton" type="Button" parent="PanelContainer/MarginContainer/Layout/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"LabelButton"
+text = "Apply"

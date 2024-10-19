@@ -8,6 +8,9 @@ func enter() -> void:
 
 
 func on_process(_delta: float) -> void:
+    if PopupManager.any_popup_showing():
+        return
+        
     if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
         gol.draw_point_at_mouse_on_renderer(true)
         
@@ -16,6 +19,9 @@ func on_process(_delta: float) -> void:
 
 
 func on_unhandled_input(event: InputEvent) -> void:
+    if PopupManager.any_popup_showing():
+        return
+        
     if event.is_action_pressed("change_rule"):
         gol.rule_edit.show()
         gol.rule_edit.grab_focus()

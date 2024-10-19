@@ -14,7 +14,7 @@ static func add_object_at(img: Image, obj_name: String, pos_x: int, pos_y: int) 
         Logger.info("Object '%s' is not recorded!" % obj_name)
         return
 
-    var cells_code = query_result["code"].replace("\n", "")
+    var cells_code = CAHelper.rle_decode(query_result["rle_code"], query_result["x"], query_result["y"]).replace("\n", "")
 
     for i in cells_code.length():
         var color: Color = Color.WHITE if cells_code[i] == "O" else Color.BLACK
@@ -25,6 +25,20 @@ static func add_object_at(img: Image, obj_name: String, pos_x: int, pos_y: int) 
         )
 
 
+static func add_cells_code_at(img: Image, cells_code: String, x: int, pos_x: int, pos_y: int) -> void:
+    if img == null:
+        return
+
+    cells_code = cells_code.replace("\n", "")
+
+    for i in cells_code.length():
+        var color: Color = Color.WHITE if cells_code[i] == "O" else Color.BLACK
+        img.set_pixel(
+            pos_x + i % x,
+            pos_y + floor(i / float(x)),
+            color
+        )
+
 # 注意点:
 # 0. 行尾的b可以省略，也可以留下。两种都支持
 # 1. 如果表示一行的字符串中o,b的总数比行宽小，则剩余部分视为用b填充。($前一定是o)
@@ -34,6 +48,9 @@ static func rle_decode(rle_code: String, x: int, y: int) -> String:
     if _illegal_rle_code_regex.search(rle_code):
         Logger.info("Invalid RLE code: " + rle_code)
         return ""
+
+    if not rle_code.ends_with("!"):
+        rle_code += "!"
 
     var token := ""
     var cells_code := ""
@@ -65,12 +82,8 @@ static func rle_decode(rle_code: String, x: int, y: int) -> String:
 
             token = ""
 
-    if curr_count != x: # 有部分rle_code没有以!结尾
-        cells_code += ".".repeat(x - curr_count)
-
     if cells_code.length() != (x + 1) * y: # 每行多一个"\n"
         Logger.info("Rle code length error: %s, %d != (%d+1) * %d" % [rle_code, cells_code.length(), x, y])
-        print(cells_code)
         return ""
 
     return cells_code
@@ -84,6 +97,8 @@ static func _create_token(ch: String, count: int) -> String:
 
 
 static func rle_encode(cells_code: String, x: int, y: int) -> String:
+    cells_code = cells_code.replace("\n", "")
+
     var rle_code := ""
     var curr_count := 0
     var current_char := cells_code[0]
@@ -101,15 +116,18 @@ static func rle_encode(cells_code: String, x: int, y: int) -> String:
 
         if rle_code.length() > 0 and rle_code[-1] == "$":
             if rle_code.length() > 1:
-                var k = 2
-                var count_str := ""
-                while k <= rle_code.length() and rle_code[-k].is_valid_int():
-                    count_str = rle_code[-k] + count_str
-                    k += 1
-                rle_code = rle_code.left(-k+1) + str(count_str.to_int() + 1)
+                if not rle_code[-2].is_valid_int(): # 中间的空行
+                    rle_code = rle_code.left(-1) + "2"
+                else:
+                    var k = 2
+                    var count_str := ""
+                    while k <= rle_code.length() and rle_code[-k].is_valid_int():
+                        count_str = rle_code[-k] + count_str
+                        k += 1
+                    rle_code = rle_code.left(-k+1) + str(count_str.to_int() + 1)
             elif rle_code.length() == 1: # 处理起始空两行或以上的情况
                 rle_code = "2"
-                
+
         rle_code += "$"
         curr_count = 0
         if i == y - 1:
@@ -118,8 +136,6 @@ static func rle_encode(cells_code: String, x: int, y: int) -> String:
             rle_code += "!"
         else:
             current_char = cells_code[(i + 1)* x]
-
-
 
     return rle_code.replace(".", "b").replace("O", "o")
 
@@ -184,12 +200,14 @@ static func save_cells_code_to_db_from_file(filepath: String) -> void:
 
         # 限制一下模式大小。26cellquadraticgrowth=16193x15089
         if x > 1000 or y > 1000:
+            Logger.warn("Skip pattern which is too large: %s" % filepath)
             return
 
         code_lines.pop_front()
         cells_code = rle_decode("".join(code_lines), x, y)
         if cells_code == "":
             Logger.warn("Invalid rle code at: " + filepath)
+            return
     else:
         for line in code_lines:
             if line.length() < x:
@@ -203,7 +221,7 @@ static func save_cells_code_to_db_from_file(filepath: String) -> void:
         Logger.info("Invalid cells code: " + cells_code)
         return
 
-    DB.insert_row(name, cells_code, x, y , description)
+    DB.insert_row(name, CAHelper.rle_encode(cells_code, x, y), x, y , description)
 
 
 static func insert_rows_from_folder(folderpath: String) -> void:

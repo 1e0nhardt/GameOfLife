@@ -19,7 +19,10 @@ func _process(delta: float) -> void:
     )
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:      
+    if PopupManager.any_popup_showing():
+        return
+          
     _input_direction = Input.get_vector(
         "camera_move_left", "camera_move_right",
         "camera_move_up", "camera_move_down"

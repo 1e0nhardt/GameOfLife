@@ -5,7 +5,7 @@ const TABLE_NAME := "gol_patterns"
 const TABLE_DICT := {
     "id": {"data_type":"int", "primary_key": true, "not_null": true},
     "name": {"data_type":"text", "not_null": true, "unique": true},
-    "code": {"data_type":"text", "not_null": true},
+    "rle_code": {"data_type":"text", "not_null": true},
     "x": {"data_type":"int", "not_null": true},
     "y": {"data_type":"int", "not_null": true},
     "cells": {"data_type":"int", "not_null": true},
@@ -25,7 +25,7 @@ func _init() -> void:
     db = SQLite.new()
     db.path = DB_NAME
     db.verbosity_level = VERBOSITY_LEVEL
-    db.read_only = true
+    # db.read_only = true
 
     db.open_db()
     # db.drop_table(TABLE_NAME)
@@ -40,10 +40,10 @@ func _notification(what: int) -> void:
 func insert_row(a_name: String, code: String, x: int, y: int, description: String) -> void:
     db.insert_row(TABLE_NAME, {
         "name": a_name,
-        "code": code,
+        "rle_code": code,
         "x": x,
         "y": y,
-        "cells": code.count("O"),
+        "cells": CAHelper.rle_decode(code, x, y).count("O"),
         "description": description,
     })
 
@@ -64,8 +64,8 @@ func select_row_by_name(a_name: String) -> Array:
     return db.select_rows(TABLE_NAME, "LOWER(name) = '%s'" % a_name, ["*"])
 
 
-func select_row_by_code(code: String) -> Array:
-    return select_rows_by_condition("code = '%s'" % code)
+func select_row_by_rle_code(code: String) -> Array:
+    return select_rows_by_condition("rle_code = '%s'" % code)
 
 
 func select_rows_by_condition(condition: String) -> Array:
@@ -96,51 +96,43 @@ func update_rows(condition: String, new_dict: Dictionary) -> void:
     db.update_rows(TABLE_NAME, condition, new_dict)
 
 
-func update_code_by_id(id: int, new_code: String, x: int, y: int) -> void:
-    if new_code.length() != x * y:
-        print("The new code length is not equal to x * y! Won't update!")
-        return
-        
+func update_rle_code_by_id(id: int, new_code: String, x: int, y: int) -> void:
     db.update_rows(
-        TABLE_NAME, "id = %s" % id, 
-        {"code": new_code, "x": x, "y": y, "cells": new_code.count("O")}
+        TABLE_NAME, "id = %s" % id,
+        {"rle_code": new_code, "x": x, "y": y, "cells": CAHelper.rle_decode(new_code, x, y).count("O")}
     )
 
 
 func update_code_by_name(a_name: String, new_code: String, x: int, y: int) -> void:
-    if new_code.length() != x * y:
-        print("The new code length is not equal to x * y! Won't update!")
-        return
-        
     db.update_rows(
-        TABLE_NAME, "LOWER(name) = '%s'" % a_name, 
-        {"code": new_code, "x": x, "y": y, "cells": new_code.count("O")}
+        TABLE_NAME, "LOWER(name) = '%s'" % a_name,
+        {"rle_code": new_code, "x": x, "y": y, "cells": CAHelper.rle_decode(new_code, x, y).count("O")}
     )
 
 
 func update_description_by_id(id: int, new_description: String) -> void:
     db.update_rows(
-        TABLE_NAME, "id = %s" % id, 
+        TABLE_NAME, "id = %s" % id,
         {"description": new_description}
     )
 
 
 func update_description_by_name(a_name: String, new_description: String) -> void:
     db.update_rows(
-        TABLE_NAME, "LOWER(name) = '%s'" % a_name, 
+        TABLE_NAME, "LOWER(name) = '%s'" % a_name,
         {"description": new_description}
     )
 
 
 func update_name_by_id(id: int, new_name: String) -> void:
     db.update_rows(
-        TABLE_NAME, "id = %s" % id, 
+        TABLE_NAME, "id = %s" % id,
         {"name": new_name}
     )
 
 
 func update_name_by_name(a_name: String, new_name: String) -> void:
     db.update_rows(
-        TABLE_NAME, "LOWER(name) = '%s'" % a_name, 
+        TABLE_NAME, "LOWER(name) = '%s'" % a_name,
         {"name": new_name}
     )

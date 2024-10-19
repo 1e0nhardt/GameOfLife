@@ -8,6 +8,9 @@ func enter() -> void:
 
 
 func on_unhandled_input(event: InputEvent) -> void:
+    if PopupManager.any_popup_showing():
+        return
+        
     if event.is_action_pressed("play_or_pause"):
         transition_requested.emit(self, State.DRAW)
     

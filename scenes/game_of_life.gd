@@ -1,18 +1,21 @@
 class_name GameOfLife
 extends Node2D
 
-const ITEM_LABEL = preload("res://scenes/item_label.tscn")
+const ITEM_LABEL = preload("res://scenes/ui/item_label.tscn")
 
 @export var grid_size: Vector2i = Vector2i(384, 216)
 @export var update_interval: float = 0.2
 
 var _rd: RenderingDevice
+var _shader_rid: RID
 var _pipeline: RID
 var _input_texture: RID
 var _output_texture: RID
 var _survive_nums_buffer: RID
 var _born_nums_buffer: RID
 var _uniform_set: RID
+var _survive_nums_uniform: RDUniform
+var _born_nums_uniform: RDUniform
 var _default_texture_format: RDTextureFormat
 var _default_texture_usage_bits = (
     RenderingDevice.TEXTURE_USAGE_STORAGE_BIT +
@@ -46,18 +49,19 @@ var stopped := true:
 @onready var generation_number: Label = %GenerationNumber
 @onready var renderer: Sprite2D = $Renderer
 @onready var camera_2d: GameOfLifeCamera = $Camera2D
-@onready var search_panel: CenterContainer = %SearchPanel
-@onready var search_edit: LineEdit = %SearchEdit
 @onready var rmb_options: PanelContainer = %RMBOptions
 @onready var rmb_options_vbox: VBoxContainer = %RMBVBox
-@onready var rule_edit: LineEdit = %RuleEdit
+# @onready var rule_edit: LineEdit = %RuleEdit
 @onready var rule_label: Label = %RuleLabel
 
 
-func _ready() -> void:    
+func _ready() -> void:
     # CAHelper.insert_rows_from_folder("res://game_of_life_patterns")
-    EventBus.object_selected.connect(_on_object_selected)
-    rule_edit.text_submitted.connect(_on_rule_changed)
+    # return
+
+    Controller.object_selected.connect(_on_object_selected)
+    Controller.settings_applied.connect(_on_settings_applied)
+    # rule_edit.text_submitted.connect(_on_rule_changed)
     gol_state_machine.init(self)
 
     update_interval_label(update_interval)
@@ -78,6 +82,15 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+    if event.is_action_pressed("ui_cancel"):
+        show_settings_popup()
+        # var info_popup := Controller.get_info_popup()
+        # info_popup.title = "Test Info Popup"
+        # info_popup.content = "This is a test info popup"
+        # # info_popup.add_button("Cancel", info_popup.close_popup)
+        # # info_popup.add_button("OK", info_popup.close_popup)
+        # Controller.show_info_popup(info_popup, Vector2(300, 200))
+
     gol_state_machine.on_input(event)
 
 
@@ -202,6 +215,17 @@ func setup_images() -> void:
     _mask_image = Image.create(grid_size.x, grid_size.y, false, Image.FORMAT_L8)
 
 
+func reset_images(new_grid_size: int) -> void:
+    grid_size = Vector2.ONE * new_grid_size
+    _input_image = Image.create(new_grid_size, new_grid_size, false, Image.FORMAT_L8)
+    _input_image.fill(Color.BLACK)
+    _output_image = Image.create(new_grid_size, new_grid_size, false, Image.FORMAT_L8)
+    _output_image.fill(Color.BLACK)
+    _mask_image = Image.create(new_grid_size, new_grid_size, false, Image.FORMAT_L8)
+    _mask_image.fill(Color.BLACK)
+    link_output_texture_to_renderer()
+
+
 func link_output_texture_to_renderer() -> void:
     var mat: ShaderMaterial = renderer.material as ShaderMaterial
     _render_texture = ImageTexture.create_from_image(_output_image)
@@ -267,7 +291,7 @@ func create_buffer_uniform(buffer_rid: RID, binding: int) -> RDUniform:
     buffer_uniform.binding = binding
     buffer_uniform.add_id(buffer_rid)
     return buffer_uniform
-    
+
 
 func setup_compute_shader() -> void:
     _rd = RenderingServer.create_local_rendering_device()
@@ -275,8 +299,8 @@ func setup_compute_shader() -> void:
         OS.alert("""Couldn't create local RenderingDevice on GPU: %s\nNote: RenderingDevice is only available in the Forward+ and Mobile rendering methods, not Compatibility.""" % RenderingServer.get_video_adapter_name())
         return
 
-    var shader_rid := load_shader("res://shaders/game_of_life_variant.glsl")
-    _pipeline = _rd.compute_pipeline_create(shader_rid)
+    _shader_rid = load_shader("res://shaders/game_of_life_variant.glsl")
+    _pipeline = _rd.compute_pipeline_create(_shader_rid)
 
     _default_texture_format = RDTextureFormat.new()
     _default_texture_format.format = RenderingDevice.DATA_FORMAT_R8_UNORM
@@ -289,16 +313,32 @@ func setup_compute_shader() -> void:
 
     var input_texture_uniform = create_texture_uniform(_input_texture, 0)
     var output_texture_uniform = create_texture_uniform(_output_texture, 1)
-    
+
     var survive_nums_bytes := PackedInt32Array([2, 2, 3, 0, 0, 0, 0, 0, 0]).to_byte_array()
     _survive_nums_buffer = _rd.storage_buffer_create(survive_nums_bytes.size(), survive_nums_bytes)
-    var survive_nums_uniform = create_buffer_uniform(_survive_nums_buffer, 2)
-    
+    _survive_nums_uniform = create_buffer_uniform(_survive_nums_buffer, 2)
+
     var born_nums_bytes := PackedInt32Array([1, 3, 0, 0, 0, 0, 0, 0, 0]).to_byte_array()
     _born_nums_buffer = _rd.storage_buffer_create(born_nums_bytes.size(), born_nums_bytes)
-    var born_nums_uniform = create_buffer_uniform(_born_nums_buffer, 3)
-    
-    _uniform_set = _rd.uniform_set_create([input_texture_uniform, output_texture_uniform, survive_nums_uniform, born_nums_uniform], shader_rid, 0)
+    _born_nums_uniform = create_buffer_uniform(_born_nums_buffer, 3)
+
+    _uniform_set = _rd.uniform_set_create([input_texture_uniform, output_texture_uniform, _survive_nums_uniform, _born_nums_uniform], _shader_rid, 0)
+
+
+func update_texture_gpu() -> void:
+    _rd.free_rid(_input_texture)
+    _rd.free_rid(_output_texture)
+    # _rd.free_rid(_uniform_set) # Invalid?
+    _default_texture_format = RDTextureFormat.new()
+    _default_texture_format.format = RenderingDevice.DATA_FORMAT_R8_UNORM
+    _default_texture_format.width = grid_size.x
+    _default_texture_format.height = grid_size.y
+    _default_texture_format.usage_bits = _default_texture_usage_bits
+    _input_texture = _rd.texture_create(_default_texture_format, RDTextureView.new(), [_input_image.get_data()])
+    _output_texture = _rd.texture_create(_default_texture_format, RDTextureView.new(), [_output_image.get_data()])
+    var input_texture_uniform = create_texture_uniform(_input_texture, 0)
+    var output_texture_uniform = create_texture_uniform(_output_texture, 1)
+    _uniform_set = _rd.uniform_set_create([input_texture_uniform, output_texture_uniform, _survive_nums_uniform, _born_nums_uniform], _shader_rid, 0)
 
 
 func update() -> void:
@@ -342,16 +382,40 @@ func _on_object_selected(obj_record: Dictionary) -> void:
     draw_object_on_renderer(obj_record)
 
 
-func _on_rule_changed(new_rule: String) -> void:
-    # change_rule(new_rule)
-    var born_condition = new_rule.split("/")[0].substr(1)
-    var survive_condition = new_rule.split("/")[1].substr(1)
- 
-    update_buffer_data(survive_condition, _survive_nums_buffer)
-    update_buffer_data(born_condition, _born_nums_buffer)
+func _on_settings_applied(new_settings: Dictionary) -> void:
+    var new_rule = new_settings.get("rule")
+    if new_rule:
+        var born_condition = new_rule.split("/")[0].substr(1)
+        var survive_condition = new_rule.split("/")[1].substr(1)
+
+        update_buffer_data(survive_condition, _survive_nums_buffer)
+        update_buffer_data(born_condition, _born_nums_buffer)
+
+        rule_label.text = "Rule: %s" % new_rule
     
-    rule_label.text = "Rule: %s" % new_rule
-    rule_edit.hide()
+    if new_settings.get("size"):
+        reset_images(new_settings["size"])
+        update_texture_gpu()
+
+
+# func _on_rule_changed(new_text: String) -> void:
+#     if new_text.begins_with("rule:"):
+#         var new_rule = new_text.substr(5).strip_edges()
+#         var born_condition = new_rule.split("/")[0].substr(1)
+#         var survive_condition = new_rule.split("/")[1].substr(1)
+
+#         update_buffer_data(survive_condition, _survive_nums_buffer)
+#         update_buffer_data(born_condition, _born_nums_buffer)
+
+#         rule_label.text = "Rule: %s" % new_rule
+    
+#     if new_text.begins_with("size:"):
+#         var new_size = new_text.substr(5).strip_edges()
+#         if new_size.is_valid_int():
+#             reset_images(new_size.to_int())
+#             update_texture_gpu()
+
+#     rule_edit.hide()
 
 
 func update_buffer_data(condition: String, buffer_rid: RID) -> void:
@@ -360,4 +424,9 @@ func update_buffer_data(condition: String, buffer_rid: RID) -> void:
         nums_array.append(num.to_int())
     var bytes = nums_array.to_byte_array()
     _rd.buffer_update(buffer_rid, 0, bytes.size(), bytes)
-    
+
+
+func show_settings_popup() -> void:
+    var settings_popup := Controller.get_settings_popup()
+    settings_popup.save_current_rule_and_size(rule_label.text.substr(5).strip_edges(), grid_size.x)
+    Controller.show_settings_popup(settings_popup, Vector2(300, 100))

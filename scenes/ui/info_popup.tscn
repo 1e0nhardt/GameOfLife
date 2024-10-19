@@ -1,0 +1,62 @@
+[gd_scene load_steps=3 format=3 uid="uid://cc6mxwlcrk4kw"]
+
+[ext_resource type="Script" path="res://scenes/ui/info_popup.gd" id="1_ijyjl"]
+[ext_resource type="PackedScene" uid="uid://dfyb27v3t62m2" path="res://scenes/ui/icon_button.tscn" id="2_84usp"]
+
+[node name="InfoPopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1120.0
+offset_bottom = -630.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ijyjl")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleBar" type="MarginContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+
+[node name="TitleHBox" type="HBoxContainer" parent="Layout/TitleBar"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Layout/TitleBar/TitleHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Information"
+vertical_alignment = 1
+
+[node name="CloseButton" parent="Layout/TitleBar/TitleHBox" instance=ExtResource("2_84usp")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Content" type="MarginContainer" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+
+[node name="ContentVBox" type="VBoxContainer" parent="Layout/Content"]
+layout_mode = 2
+
+[node name="ContentLabel" type="RichTextLabel" parent="Layout/Content/ContentVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="ButtonBar" type="HBoxContainer" parent="Layout/Content/ContentVBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+alignment = 1

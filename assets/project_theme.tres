@@ -1,0 +1,71 @@
+[gd_resource type="Theme" load_steps=7 format=3 uid="uid://biiu2otmd44jp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ku0aq"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o2qnc"]
+content_margin_left = 6.0
+content_margin_top = 2.0
+content_margin_right = 6.0
+content_margin_bottom = 2.0
+bg_color = Color(0.255659, 0.255659, 0.255659, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_paiwn"]
+content_margin_left = 6.0
+content_margin_top = 2.0
+content_margin_right = 6.0
+content_margin_bottom = 2.0
+bg_color = Color(0.121569, 0.141176, 0.156863, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x8407"]
+content_margin_left = 6.0
+content_margin_top = 2.0
+content_margin_right = 6.0
+content_margin_bottom = 2.0
+bg_color = Color(0.377919, 0.377919, 0.377919, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cypf4"]
+content_margin_left = 8.0
+bg_color = Color(0.121569, 0.141176, 0.156863, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.666569, 0.666569, 0.666569, 0.6)
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lmpcw"]
+content_margin_left = 8.0
+bg_color = Color(0.121569, 0.141176, 0.156863, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[resource]
+InfoPopup/base_type = &"Control"
+InfoPopup/colors/border_color = Color(0.505344, 0.505344, 0.505344, 1)
+InfoPopup/colors/content_color = Color(0.212538, 0.240327, 0.2782, 1)
+InfoPopup/colors/title_color = Color(0.15, 0.36, 0.6, 1)
+InfoPopup/constants/border_width = 2
+InfoPopup/constants/title_height = 36
+LabelButton/base_type = &"Button"
+LabelButton/font_sizes/font_size = 18
+LabelButton/styles/focus = SubResource("StyleBoxEmpty_ku0aq")
+LabelButton/styles/hover = SubResource("StyleBoxFlat_o2qnc")
+LabelButton/styles/normal = SubResource("StyleBoxFlat_paiwn")
+LabelButton/styles/pressed = SubResource("StyleBoxFlat_x8407")
+LineEdit/styles/focus = SubResource("StyleBoxFlat_cypf4")
+LineEdit/styles/normal = SubResource("StyleBoxFlat_lmpcw")
+PopupManager/colors/click_catcher_color = Color(0.211765, 0.211765, 0.211765, 0.0313726)
